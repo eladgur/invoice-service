@@ -1,7 +1,11 @@
-package invoice;
+package invoice.core;
 
+import invoice.model.ScheduleInvoiceRequest;
+import invoice.model.ScheduleInvoiceResponse;
 import invoice.auth.AuthDecoder;
 import invoice.auth.Credentials;
+import invoice.exceptions.InvoiceNotFoundException;
+import invoice.model.Invoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -15,10 +19,10 @@ import java.util.List;
 
 @Validated
 @RestController
-public class InvoiceController {
+class InvoiceController {
 
-    public static final int MINIMAL_RISK_SCORE = 90;
-    public static final float MINIMAL_AMOUNT_TO_CHECK = 20000;
+    static final int MINIMAL_RISK_SCORE = 90;
+    static final float MINIMAL_AMOUNT_TO_CHECK = 20000;
     private final InvoiceRepository repository;
     private final AuthDecoder authDecoder;
     private final RiskService riskService;
@@ -71,6 +75,15 @@ public class InvoiceController {
     @DeleteMapping("/invoices/{id}")
     void deleteEmployee(@PathVariable String id) {
         repository.deleteById(id);
+    }
+
+    @PutMapping("/invoices/schedule/{id}")
+    ScheduleInvoiceResponse scheduleInvoiceById(@PathVariable String id, @Valid @RequestBody ScheduleInvoiceRequest scheduleInvoiceRequest) {
+        String s = "";
+        return repository.findById(id)
+                .filter(invoice -> !invoice.getScheduled())
+                .orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)))
+                .schedule(scheduleInvoiceRequest);
     }
 
 }

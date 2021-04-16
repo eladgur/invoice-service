@@ -1,4 +1,6 @@
-package invoice;
+package invoice.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -12,15 +14,17 @@ public class Invoice {
 
 //    private @Id @GeneratedValue Long id;
     @Id private String invoiceId;
-    @NotNull private Float amount;
+    @NotNull private float amount;
     @NotNull private LocalDate creationDate;
+    @JsonIgnore private LocalDate scheduledDate;
+    private boolean scheduled = false;
     private String description;
     @NotBlank private String companyName;
     @NotBlank private String customerEmail;
 
     public Invoice() {}
 
-    Invoice(String invoiceId, Float amount, LocalDate creationDate, String description, String companyName, String customerEmail) {
+    public Invoice(String invoiceId, Float amount, LocalDate creationDate, String description, String companyName, String customerEmail) {
         this.amount = amount;
         this.creationDate = creationDate;
         this.description = description;
@@ -100,5 +104,37 @@ public class Invoice {
     public Invoice setCustomerEmail(String customerEmail) {
         this.customerEmail = customerEmail;
         return this;
+    }
+
+    @JsonIgnore
+    public LocalDate getScheduledDate() {
+        return scheduledDate;
+    }
+
+    private void setScheduledDate(LocalDate scheduledDate) {
+        this.scheduledDate = scheduledDate;
+    }
+
+    @JsonIgnore
+    public Boolean getScheduled() {
+        return scheduled;
+    }
+
+    public Invoice setScheduled(Boolean scheduled) {
+        this.scheduled = scheduled;
+        return this;
+    }
+
+    synchronized public ScheduleInvoiceResponse schedule(ScheduleInvoiceRequest scheduleInvoiceRequest) {
+        LocalDate scheduledDate = scheduleInvoiceRequest.getScheduledDate();
+        ScheduleInvoiceResponse response = new ScheduleInvoiceResponse(scheduledDate, invoiceId, false);
+
+        if (!scheduled) {
+            setScheduledDate(scheduledDate);
+            setScheduled(true);
+            response.setScheduledSucceeded(true);
+        }
+
+        return response;
     }
 }

@@ -1,4 +1,4 @@
-package invoice;
+package invoice.core;
 
 import invoice.risk.RiskService;
 import org.mockito.Mockito;

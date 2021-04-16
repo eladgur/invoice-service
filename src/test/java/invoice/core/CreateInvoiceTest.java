@@ -1,11 +1,9 @@
-package invoice;
+package invoice.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import invoice.auth.Credentials;
+import invoice.TestUtil;
 import invoice.risk.RiskService;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +14,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.result.ContentResultMatchers;
-import org.springframework.test.web.servlet.result.StatusResultMatchers;
 
-import java.time.LocalDate;
-import java.util.Date;
-
-import static invoice.InvoiceController.MINIMAL_AMOUNT_TO_CHECK;
-import static invoice.InvoiceController.MINIMAL_RISK_SCORE;
+import static invoice.core.InvoiceController.MINIMAL_AMOUNT_TO_CHECK;
+import static invoice.core.InvoiceController.MINIMAL_RISK_SCORE;
 import static invoice.TestUtil.testEndpoint;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
