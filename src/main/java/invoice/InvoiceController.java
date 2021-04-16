@@ -37,9 +37,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/invoices")
-    Invoice newInvoice(@RequestHeader("Authorization") String authHeader,
-                       @Valid @RequestBody Invoice newInvoice,
-                       BindingResult result) {
+    Invoice newInvoice(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody Invoice newInvoice, BindingResult result) {
         Credentials credentials = this.authDecoder.decode(authHeader);
         int riskScore = this.riskService.estimateUserRiskScore(credentials);
         if (MINIMAL_AMOUNT_TO_CHECK < newInvoice.getAmount() && riskScore < MINIMAL_RISK_SCORE) {
@@ -50,14 +48,13 @@ public class InvoiceController {
     }
 
     @GetMapping("/invoices/{id}")
-    Invoice getInvoiceById(@PathVariable Long id) {
-
+    Invoice getInvoiceById(@PathVariable String id) {
         return repository.findById(id)
-                .orElseThrow(() -> new InvoiceNotFoundException(id));
+                .orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)));
     }
 
     @PutMapping("/invoices/{id}")
-    Invoice replaceInvoice(@RequestBody Invoice newInvoice, @PathVariable Long id) {
+    Invoice replaceInvoice(@RequestBody Invoice newInvoice, @PathVariable String id) {
 
         return repository.findById(id)
                 .map(invoice -> {
@@ -66,13 +63,13 @@ public class InvoiceController {
                     return repository.save(invoice);
                 })
                 .orElseGet(() -> {
-                    newInvoice.setId(id);
+                    newInvoice.setInvoiceId(id);
                     return repository.save(newInvoice);
                 });
     }
 
     @DeleteMapping("/invoices/{id}")
-    void deleteEmployee(@PathVariable Long id) {
+    void deleteEmployee(@PathVariable String id) {
         repository.deleteById(id);
     }
 

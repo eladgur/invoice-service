@@ -1,29 +1,26 @@
 package invoice;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
 public class Invoice {
 
-    private @Id @GeneratedValue Long id;
-    @Column(unique =true) private String invoiceId;
+//    private @Id @GeneratedValue Long id;
+    @Id private String invoiceId;
     @NotNull private Float amount;
-    @NotNull private Date creationDate;
+    @NotNull private LocalDate creationDate;
     private String description;
     @NotBlank private String companyName;
     @NotBlank private String customerEmail;
 
     public Invoice() {}
 
-    Invoice(String invoiceId, Float amount, Date creationDate, String description, String companyName, String customerEmail) {
+    Invoice(String invoiceId, Float amount, LocalDate creationDate, String description, String companyName, String customerEmail) {
         this.amount = amount;
         this.creationDate = creationDate;
         this.description = description;
@@ -32,27 +29,20 @@ public class Invoice {
         this.invoiceId = invoiceId;
     }
 
-    public Long getId() {
-        return this.id;
-    }
-
     public Float getAmount() {
         return this.amount;
     }
 
-    public Date getCreationDate() {
+    public @NotNull LocalDate getCreationDate() {
         return this.creationDate;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setAmount(Float amount) {
+    public Invoice setAmount(Float amount) {
         this.amount = amount;
+        return this;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(LocalDate creationDate) {
         this.creationDate = creationDate;
     }
 
@@ -64,18 +54,18 @@ public class Invoice {
         if (!(o instanceof Invoice))
             return false;
         Invoice invoice = (Invoice) o;
-        return Objects.equals(this.id, invoice.id) && Objects.equals(this.amount, invoice.amount)
+        return Objects.equals(this.invoiceId, invoice.invoiceId) && Objects.equals(this.amount, invoice.amount)
                 && Objects.equals(this.creationDate, invoice.creationDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.amount, this.creationDate);
+        return Objects.hash(this.invoiceId, this.amount, this.creationDate);
     }
 
     @Override
     public String toString() {
-        return "Invoice{" + "id=" + this.id + ", amount='" + this.amount + '\'' + ", creationDate='" + this.creationDate + '\'' + '}';
+        return "Invoice{" + "id=" + this.invoiceId + ", amount='" + this.amount + '\'' + ", creationDate='" + this.creationDate + '\'' + '}';
     }
 
     public String getInvoiceId() {
@@ -98,15 +88,17 @@ public class Invoice {
         return companyName;
     }
 
-    public void setCompanyName(String companyName) {
+    public Invoice setCompanyName(String companyName) {
         this.companyName = companyName;
+        return this;
     }
 
     public String getCustomerEmail() {
         return customerEmail;
     }
 
-    public void setCustomerEmail(String customerEmail) {
+    public Invoice setCustomerEmail(String customerEmail) {
         this.customerEmail = customerEmail;
+        return this;
     }
 }

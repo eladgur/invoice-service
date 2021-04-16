@@ -19,10 +19,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.result.ContentResultMatchers;
 import org.springframework.test.web.servlet.result.StatusResultMatchers;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import static invoice.InvoiceController.MINIMAL_AMOUNT_TO_CHECK;
 import static invoice.InvoiceController.MINIMAL_RISK_SCORE;
+import static invoice.TestUtil.testEndpoint;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -35,7 +37,6 @@ class CreateInvoiceTest {
 
     private static final float AMOUNT_BELLOW_LIMIT = MINIMAL_AMOUNT_TO_CHECK - 1;
     private static final float AMOUNT_ABOVE_LIMIT = MINIMAL_AMOUNT_TO_CHECK + 1;
-    private Invoice invoiceTemplate = new Invoice("1", MINIMAL_AMOUNT_TO_CHECK - 1, new Date(121, 12, 1), "asd", "awesomeComp", "e@awesomeComp.com");
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,36 +44,28 @@ class CreateInvoiceTest {
     @Autowired
     private RiskService riskService;
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
     @Test
     void validInput() throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("invoiceId", "3")
-                .put("amount", 14.0)
-                .put("creationDate", "1991-12-23")
-                .put("companyName", "Asd")
-                .put("customerEmail", "Asd@gmail.com");
-        MockHttpServletRequestBuilder req = post("/invoices")
-                .header("Authorization", "Basic QWxpY2U6MTIz")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.toString());
-        ResultActions res = this.mockMvc.perform(req);
-        res.andDo(print()).andExpect(status().isOk())
-                .andExpect(content().json(json.put("creationDate", "1991-12-23T00:00:00.000+00:00").toString()));
+        String json = TestUtil.toJsonString(TestUtil.createInvoiceTemplate());
+        testEndpoint(this.mockMvc, post("/invoices"), json)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
     }
 
     @Test
-    void inValidInput() throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("invoiceId", "3")
-                .put("amount", 14.0)
+    void invalidInputMissingField() throws Exception {
+        String json = new JSONObject()
+                .put("invoiceId", "3")
+                .put("amount", 14f)
                 .put("creationDate", "1991-12-23")
-                .put("companyName", "Asd");
+                .put("companyName", "awesomeComp")
+                .toString();
+
         MockHttpServletRequestBuilder req = post("/invoices")
                 .header("Authorization", "Basic QWxpY2U6MTIz")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json.toString());
+                .content(json);
         ResultActions res = this.mockMvc.perform(req);
         res.andExpect(status().isBadRequest())
                 .andExpect(content().string("newInvoice.newInvoice.customerEmail: must not be blank"));
@@ -80,49 +73,27 @@ class CreateInvoiceTest {
 
     @Test
     void inSufficientRiskScore() throws Exception {
+        String json = TestUtil.toJsonString(TestUtil.createInvoiceTemplate().setAmount(AMOUNT_ABOVE_LIMIT));
         Mockito.when(riskService.estimateUserRiskScore(Mockito.any())).thenReturn(MINIMAL_RISK_SCORE - 1);
-        Invoice invoice = new Invoice("1", AMOUNT_ABOVE_LIMIT, new Date(121, 12, 1), "asd", "awesomeComp", "e@awesomeComp.com");
-        String json = objectMapper.writeValueAsString(invoice);
-        MockHttpServletRequestBuilder req = post("/invoices")
-                .header("Authorization", "Basic QWxpY2U6MTIz")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.toString());
-        ResultActions res = this.mockMvc.perform(req);
-        String errorMsg = res.andReturn().getResponse().getErrorMessage();
+        String errorMsg = testEndpoint(this.mockMvc, post("/invoices"), json).andReturn().getResponse().getErrorMessage();
         Assert.assertEquals(errorMsg, "Invoice max amount exceeded");
     }
 
     @Test
     void sufficientRiskScore() throws Exception {
         Mockito.when(riskService.estimateUserRiskScore(Mockito.any())).thenReturn(MINIMAL_RISK_SCORE + 1);
-        JSONObject json = new JSONObject();
-        json.put("invoiceId", "3")
-                .put("amount", AMOUNT_ABOVE_LIMIT)
-                .put("creationDate", "1991-12-23")
-                .put("companyName", "Asd")
-                .put("customerEmail", "Asd@gmail.com");
-        MockHttpServletRequestBuilder req = post("/invoices")
-                .header("Authorization", "Basic QWxpY2U6MTIz")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.toString());
-        ResultActions res = this.mockMvc.perform(req).andExpect(status().isOk())
-                .andExpect(content().json(json.put("creationDate", "1991-12-23T00:00:00.000+00:00").toString()));
+        String json = TestUtil.toJsonString(TestUtil.createInvoiceTemplate().setAmount(AMOUNT_ABOVE_LIMIT));
+        testEndpoint(this.mockMvc, post("/invoices"), json)
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
     }
 
     @Test
     void uncheckedAmount() throws Exception {
         Mockito.when(riskService.estimateUserRiskScore(Mockito.any())).thenReturn(MINIMAL_RISK_SCORE - 1);
-        JSONObject json = new JSONObject();
-        json.put("invoiceId", "3")
-                .put("amount", AMOUNT_BELLOW_LIMIT)
-                .put("creationDate", "1991-12-23")
-                .put("companyName", "Asd")
-                .put("customerEmail", "Asd@gmail.com");
-        MockHttpServletRequestBuilder req = post("/invoices")
-                .header("Authorization", "Basic QWxpY2U6MTIz")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.toString());
-        ResultActions res = this.mockMvc.perform(req).andExpect(status().isOk())
-                .andExpect(content().json(json.put("creationDate", "1991-12-23T00:00:00.000+00:00").toString()));
+        String json = TestUtil.toJsonString(TestUtil.createInvoiceTemplate().setAmount(AMOUNT_BELLOW_LIMIT));
+        testEndpoint(this.mockMvc, post("/invoices"), json)
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
     }
 }
