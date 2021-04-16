@@ -19,7 +19,7 @@ class LoadDatabase {
 
         return args -> {
             log.info("Preloading " + repository.save(new Invoice("1", 14.0f, LocalDate.of(1991, 12, 1), "asd", "awesomeComp", "e@awesomeComp.com")));
-            log.info("Preloading " + repository.save(new Invoice("2", 54.0f, LocalDate.of(121, 11, 1), "aa", "ddd", "e@ddd.com")));
+            log.info("Preloading " + repository.save(new Invoice("2", 54.0f, LocalDate.of(1991, 11, 1), "aa", "ddd", "e@ddd.com")));
         };
     }
 }

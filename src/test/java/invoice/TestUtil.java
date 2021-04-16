@@ -26,7 +26,7 @@ public class TestUtil {
     }
 
     public static Invoice createInvoiceTemplate() {
-        return new Invoice("1", 1f, LocalDate.of(1991, 12, 1), "asd", "awesomeComp", "e@awesomeComp.com");
+        return new Invoice("3", 1f, LocalDate.of(1991, 12, 1), "asd", "awesomeComp", "e@awesomeComp.com");
     }
 
     public static ResultActions testEndpoint(MockMvc mockMvc, MockHttpServletRequestBuilder requestBuilder, String json) throws Exception {

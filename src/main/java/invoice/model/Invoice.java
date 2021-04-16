@@ -76,8 +76,9 @@ public class Invoice {
         return invoiceId;
     }
 
-    public void setInvoiceId(String invoiceId) {
+    public Invoice setInvoiceId(String invoiceId) {
         this.invoiceId = invoiceId;
+        return this;
     }
 
     public String getDescription() {
@@ -111,7 +112,7 @@ public class Invoice {
         return scheduledDate;
     }
 
-    private void setScheduledDate(LocalDate scheduledDate) {
+    public void setScheduledDate(LocalDate scheduledDate) {
         this.scheduledDate = scheduledDate;
     }
 

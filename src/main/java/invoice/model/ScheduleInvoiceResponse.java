@@ -9,7 +9,7 @@ public class ScheduleInvoiceResponse {
 
     public ScheduleInvoiceResponse() {}
 
-    ScheduleInvoiceResponse(LocalDate scheduledDate, String invoiceId, boolean scheduledSucceeded) {
+    public ScheduleInvoiceResponse(LocalDate scheduledDate, String invoiceId, boolean scheduledSucceeded) {
         this.scheduledDate = scheduledDate;
         this.invoiceId = invoiceId;
         this.scheduledSucceeded = scheduledSucceeded;
@@ -35,7 +35,7 @@ public class ScheduleInvoiceResponse {
         return scheduledSucceeded;
     }
 
-    void setScheduledSucceeded(boolean scheduledSucceeded) {
+    public void setScheduledSucceeded(boolean scheduledSucceeded) {
         this.scheduledSucceeded = scheduledSucceeded;
     }
 }

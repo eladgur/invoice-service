@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static invoice.TestUtil.createInvoiceTemplate;
 import static invoice.TestUtil.testEndpoint;
@@ -49,11 +50,18 @@ class ScheduleInvoiceTest {
         String invoiceId = invoice.getInvoiceId();
         String scheduleURL = String.format("/invoices/schedule/%s", invoiceId);
         LocalDate scheduleDate = invoice.getCreationDate().plusWeeks(2);
-        String scheduleReq = TestUtil.toJsonString(new ScheduleInvoiceRequest(scheduleDate));
+        ScheduleInvoiceRequest scheduleInvoiceRequest = new ScheduleInvoiceRequest(scheduleDate);
+        String scheduleReq = TestUtil.toJsonString(scheduleInvoiceRequest);
         String response = testEndpoint(this.mockMvc, put(scheduleURL), scheduleReq)
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        Invoice scheduledInvoice = invoiceRepository.findById(invoiceId).get();
+        Assert.assertTrue( scheduledInvoice.getScheduled());
+        Assert.assertEquals(scheduleDate ,scheduledInvoice.getScheduledDate());
+
+        //        assert response
         ScheduleInvoiceResponse scheduleInvoiceResponse = TestUtil.objectMapper.readValue(response, ScheduleInvoiceResponse.class);
         Assert.assertTrue(scheduleInvoiceResponse.isScheduledSucceeded());
         Assert.assertEquals(scheduleDate, scheduleInvoiceResponse.getScheduledDate());
