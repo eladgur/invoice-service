@@ -4,6 +4,7 @@ import invoice.TestUtil;
 import invoice.model.Invoice;
 import invoice.model.ScheduleInvoiceRequest;
 import invoice.model.ScheduleInvoiceResponse;
+import invoice.model.ScheduleStatus;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -32,13 +33,13 @@ class ScheduleInvoiceTest {
 
     @Test
     void tryToForceCreateScheduledInvoiceShouldFail() throws Exception {
-        Invoice invoiceTemplate = createInvoiceTemplate().setScheduled(true);
+        Invoice invoiceTemplate = createInvoiceTemplate().setScheduleStatus(ScheduleStatus.SCHEDULED);
         String json = TestUtil.toJsonString(invoiceTemplate);
         testEndpoint(this.mockMvc, post("/invoices"), json);
         String URL = String.format("/invoices/%s", invoiceTemplate.getInvoiceId());
         String response = testEndpoint(this.mockMvc, get(URL), json).andReturn().getResponse().getContentAsString();
         Invoice invoiceResponse = TestUtil.objectMapper.readValue(response, Invoice.class);
-        Assert.assertEquals(false, invoiceResponse.getScheduled());
+        Assert.assertEquals(ScheduleStatus.WAITINGFORSCHEDULE, invoiceResponse.getScheduleStatus());
     }
 
     @Test
@@ -57,9 +58,11 @@ class ScheduleInvoiceTest {
                 .getResponse()
                 .getContentAsString();
 
-        Invoice scheduledInvoice = invoiceRepository.findById(invoiceId).get();
-        Assert.assertTrue( scheduledInvoice.getScheduled());
-        Assert.assertEquals(scheduleDate ,scheduledInvoice.getScheduledDate());
+        Optional<Invoice> optionalInvoice = invoiceRepository.findById(invoiceId);
+        Assert.assertTrue(optionalInvoice.isPresent());
+        Invoice scheduledInvoice = optionalInvoice.get();
+        Assert.assertEquals(ScheduleStatus.SCHEDULED, scheduledInvoice.getScheduleStatus());
+        Assert.assertEquals(scheduleDate, scheduledInvoice.getScheduledDate());
 
         //        assert response
         ScheduleInvoiceResponse scheduleInvoiceResponse = TestUtil.objectMapper.readValue(response, ScheduleInvoiceResponse.class);

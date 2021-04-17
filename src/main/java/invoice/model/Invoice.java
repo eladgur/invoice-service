@@ -12,17 +12,25 @@ import java.util.Objects;
 @Entity
 public class Invoice {
 
-//    private @Id @GeneratedValue Long id;
-    @Id private String invoiceId;
-    @NotNull private float amount;
-    @NotNull private LocalDate creationDate;
-    @JsonIgnore private LocalDate scheduledDate;
-    private boolean scheduled = false;
+    //    private @Id @GeneratedValue Long id;
+    @Id
+    private String invoiceId;
+    @NotNull
+    private float amount;
+    @NotNull
+    private LocalDate creationDate;
+    @JsonIgnore
+    private LocalDate scheduledDate;
+    @JsonIgnore
+    private ScheduleStatus scheduleStatus = ScheduleStatus.WAITINGFORSCHEDULE;
     private String description;
-    @NotBlank private String companyName;
-    @NotBlank private String customerEmail;
+    @NotBlank
+    private String companyName;
+    @NotBlank
+    private String customerEmail;
 
-    public Invoice() {}
+    public Invoice() {
+    }
 
     public Invoice(String invoiceId, Float amount, LocalDate creationDate, String description, String companyName, String customerEmail) {
         this.amount = amount;
@@ -112,17 +120,8 @@ public class Invoice {
         return scheduledDate;
     }
 
-    public void setScheduledDate(LocalDate scheduledDate) {
+    public Invoice setScheduledDate(LocalDate scheduledDate) {
         this.scheduledDate = scheduledDate;
-    }
-
-    @JsonIgnore
-    public Boolean getScheduled() {
-        return scheduled;
-    }
-
-    public Invoice setScheduled(Boolean scheduled) {
-        this.scheduled = scheduled;
         return this;
     }
 
@@ -130,12 +129,27 @@ public class Invoice {
         LocalDate scheduledDate = scheduleInvoiceRequest.getScheduledDate();
         ScheduleInvoiceResponse response = new ScheduleInvoiceResponse(scheduledDate, invoiceId, false);
 
-        if (!scheduled) {
+        if (isWaitingForSchedule()) {
             setScheduledDate(scheduledDate);
-            setScheduled(true);
+            setScheduleStatus(ScheduleStatus.SCHEDULED);
             response.setScheduledSucceeded(true);
         }
 
         return response;
+    }
+
+    @JsonIgnore
+    public ScheduleStatus getScheduleStatus() {
+        return scheduleStatus;
+    }
+
+    public Invoice setScheduleStatus(ScheduleStatus scheduleStatus) {
+        this.scheduleStatus = scheduleStatus;
+        return this;
+    }
+
+    @JsonIgnore
+    public boolean isWaitingForSchedule() {
+        return scheduleStatus.equals(ScheduleStatus.WAITINGFORSCHEDULE);
     }
 }

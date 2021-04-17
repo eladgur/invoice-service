@@ -45,6 +45,33 @@ class GetScheduledInvoicesTest {
     }
 
     @Test
+    void withScheduledInvoicesInRange() throws Exception {
+        Invoice invoice1 = createInvoiceTemplate().setInvoiceId("4");
+        Invoice invoice2 = createInvoiceTemplate().setInvoiceId("5");
+        invoiceRepository.save(invoice1);
+        invoiceRepository.save(invoice2);
+
+        LocalDate scheduleDate = LocalDate.of(2022, 5, 12);
+        String scheduleURL = String.format("/invoices/schedule/%s", invoice1.getInvoiceId());
+        String scheduleReq = TestUtil.toJsonString(new ScheduleInvoiceRequest(scheduleDate));
+        testEndpoint(this.mockMvc, put(scheduleURL), scheduleReq);
+
+        scheduleDate = LocalDate.of(2022, 5, 14);
+        scheduleURL = String.format("/invoices/schedule/%s", invoice2.getInvoiceId());
+        scheduleReq = TestUtil.toJsonString(new ScheduleInvoiceRequest(scheduleDate));
+        testEndpoint(this.mockMvc, put(scheduleURL), scheduleReq);
+
+        LocalDate from = LocalDate.of(2022, 1, 1);
+        LocalDate to = LocalDate.of(2022, 5, 13);
+        String json = TestUtil.toJsonString(new GetScheduledInvoicesRequest(from, to));
+        String res = testEndpoint(this.mockMvc, get("/invoices/scheduled"), json).andReturn().getResponse().getContentAsString();
+        List<Invoice> invoices = TestUtil.objectMapper.readValue(res, new TypeReference<List<Invoice>>(){});
+        List<String> scheduledIds = invoices.stream().map(Invoice::getInvoiceId).collect(Collectors.toList());
+        Assert.assertEquals(1, invoices.size());
+        Assert.assertTrue(scheduledIds.contains(invoice1.getInvoiceId()));
+    }
+
+    @Test
     void withScheduledInvoices() throws Exception {
         Invoice invoice1 = createInvoiceTemplate().setInvoiceId("4");
         Invoice invoice2 = createInvoiceTemplate().setInvoiceId("5");
@@ -56,15 +83,12 @@ class GetScheduledInvoicesTest {
         String scheduleReq = TestUtil.toJsonString(new ScheduleInvoiceRequest(scheduleDate));
         testEndpoint(this.mockMvc, put(scheduleURL), scheduleReq);
 
-        scheduleDate = LocalDate.of(2022, 5, 12);
+        scheduleDate = LocalDate.of(2022, 5, 14);
         scheduleURL = String.format("/invoices/schedule/%s", invoice2.getInvoiceId());
         scheduleReq = TestUtil.toJsonString(new ScheduleInvoiceRequest(scheduleDate));
         testEndpoint(this.mockMvc, put(scheduleURL), scheduleReq);
 
-        LocalDate from = LocalDate.of(2022, 1, 1);
-        LocalDate to = LocalDate.of(2022, 7, 28);
-        String json = TestUtil.toJsonString(new GetScheduledInvoicesRequest(from, to));
-        String res = testEndpoint(this.mockMvc, get("/invoices/scheduled"), json).andReturn().getResponse().getContentAsString();
+        String res = testEndpoint(this.mockMvc, get("/invoices/scheduled")).andReturn().getResponse().getContentAsString();
         List<Invoice> invoices = TestUtil.objectMapper.readValue(res, new TypeReference<List<Invoice>>(){});
         List<String> scheduledIds = invoices.stream().map(Invoice::getInvoiceId).collect(Collectors.toList());
         Assert.assertEquals(2, invoices.size());

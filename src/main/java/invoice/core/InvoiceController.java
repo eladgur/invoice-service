@@ -1,12 +1,9 @@
 package invoice.core;
 
-import invoice.model.GetScheduledInvoicesRequest;
-import invoice.model.ScheduleInvoiceRequest;
-import invoice.model.ScheduleInvoiceResponse;
+import invoice.model.*;
 import invoice.auth.AuthDecoder;
 import invoice.auth.Credentials;
 import invoice.exceptions.InvoiceNotFoundException;
-import invoice.model.Invoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -15,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import invoice.risk.RiskService;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -82,15 +80,15 @@ class InvoiceController {
     @PutMapping("/invoices/schedule/{id}")
     synchronized ScheduleInvoiceResponse scheduleInvoiceById(@PathVariable String id, @Valid @RequestBody ScheduleInvoiceRequest scheduleInvoiceRequest) {
         Invoice invoice = repository.findById(id)
-                .filter(i -> !i.getScheduled())
+                .filter(i -> i.getScheduleStatus().equals(ScheduleStatus.WAITINGFORSCHEDULE))
                 .orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)));
 
         LocalDate scheduledDate = scheduleInvoiceRequest.getScheduledDate();
         ScheduleInvoiceResponse response = new ScheduleInvoiceResponse(scheduledDate, id, false);
 
-        if (!invoice.getScheduled()) {
-            invoice.setScheduledDate(scheduledDate);
-            invoice.setScheduled(true);
+        if (invoice.isWaitingForSchedule()) {
+            invoice.setScheduledDate(scheduledDate)
+                    .setScheduleStatus(ScheduleStatus.SCHEDULED);
             repository.save(invoice);
             response.setScheduledSucceeded(true);
         }
@@ -99,10 +97,25 @@ class InvoiceController {
     }
 
     @GetMapping("/invoices/scheduled")
-    List<Invoice> getScheduledInvoices(@Valid @RequestBody GetScheduledInvoicesRequest req) {
-        LocalDate from = req.getFrom();
-        LocalDate to = req.getTo();
-        return repository.findByScheduledDateBetween(from, to);
+    List<Invoice> getScheduledInvoices(@Valid @RequestBody(required = false) GetScheduledInvoicesRequest req) {
+        List<Invoice> res;
+
+        if (req != null) {
+            LocalDate from = req.getFrom();
+            LocalDate to = req.getTo();
+            res = repository.findByScheduledDateBetween(from, to);
+        } else {
+            res = repository.findByScheduleStatus(ScheduleStatus.SCHEDULED);
+        }
+
+        return res;
+    }
+
+    @DeleteMapping("/invoices/schedule/{id}")
+    void cancelSchedule(@PathVariable String id, HttpServletResponse response) {
+        Invoice invoice = repository.findById(id).orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)));
+        invoice.setScheduledDate(null);
+        repository.save(invoice);
     }
 
 }
