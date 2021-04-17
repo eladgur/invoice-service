@@ -25,6 +25,11 @@ class GetInvoiceByIdTest {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    @BeforeEach
+    void setUp() {
+        invoiceRepository.deleteAll();
+    }
+
     @Test
     void getById() throws Exception {
         String json = TestUtil.toJsonString(createInvoiceTemplate());

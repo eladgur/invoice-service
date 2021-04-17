@@ -6,6 +6,7 @@ import invoice.model.ScheduleInvoiceRequest;
 import invoice.model.ScheduleInvoiceResponse;
 import invoice.model.ScheduleStatus;
 import org.junit.Assert;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,11 @@ class ScheduleInvoiceTest {
 
     @Autowired
     private InvoiceRepository invoiceRepository;
+
+    @BeforeEach
+    void setUp() {
+        invoiceRepository.deleteAll();
+    }
 
     @Test
     void tryToForceCreateScheduledInvoiceShouldFail() throws Exception {

@@ -4,6 +4,7 @@ import invoice.TestUtil;
 import invoice.risk.RiskService;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,14 @@ class CreateInvoiceTest {
 
     @Autowired
     private RiskService riskService;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
+    @BeforeEach
+    void setUp() {
+        invoiceRepository.deleteAll();
+    }
 
     @Test
     void validInput() throws Exception {

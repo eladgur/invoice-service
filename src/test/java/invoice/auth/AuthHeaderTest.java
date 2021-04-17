@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import invoice.core.InvoiceRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,14 @@ class AuthHeaderTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
+    @BeforeEach
+    void setUp() {
+        invoiceRepository.deleteAll();
+    }
 
     @Test
     void badHeaderTest() throws Exception {

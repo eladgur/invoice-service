@@ -6,6 +6,7 @@ import invoice.auth.Credentials;
 import invoice.exceptions.InvoiceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import invoice.risk.RiskService;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,6 +25,9 @@ class InvoiceController {
 
     static final int MINIMAL_RISK_SCORE = 90;
     static final float MINIMAL_AMOUNT_TO_CHECK = 20000;
+    static final String SCHEDULE_INVOICE_FIRST_MSG = "Schedule invoice first";
+    static final String SCHEDULE_ALREADY_CANCELLED_MSG = "Schedule already cancelled";
+    private static final String SCHEDULED_CANCELED_MSG = "Scheduled canceled";
     private final InvoiceRepository repository;
     private final AuthDecoder authDecoder;
     private final RiskService riskService;
@@ -112,10 +117,26 @@ class InvoiceController {
     }
 
     @DeleteMapping("/invoices/schedule/{id}")
-    void cancelSchedule(@PathVariable String id, HttpServletResponse response) {
+    ResponseEntity<String> cancelSchedule(@PathVariable String id) {
+        String msg;
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         Invoice invoice = repository.findById(id).orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)));
-        invoice.setScheduledDate(null);
-        repository.save(invoice);
+        switch (invoice.getScheduleStatus()) {
+            case SCHEDULED:
+                invoice.setScheduledDate(null);
+                invoice.setScheduleStatus(ScheduleStatus.CANCELED);
+                repository.save(invoice);
+                msg = SCHEDULED_CANCELED_MSG;
+                httpStatus = HttpStatus.OK;
+                break;
+            case CANCELED:
+                msg = SCHEDULE_ALREADY_CANCELLED_MSG;
+                break;
+            default:
+                msg = SCHEDULE_INVOICE_FIRST_MSG;
+        }
+
+        return ResponseEntity.status(httpStatus).body(msg);
     }
 
 }
