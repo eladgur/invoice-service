@@ -4,6 +4,7 @@
  - Audience: Intuit Elad and Intuit employees only
  - Author: Elad Gur
  - Date: 17.4.2021 
+ - diagram.pdf - a simple diagram for this micro service
 
 ## How to run
 `./mvnw spring-boot:run` or `maven spring-boot:run`
