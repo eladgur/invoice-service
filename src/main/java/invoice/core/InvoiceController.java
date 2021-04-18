@@ -83,7 +83,7 @@ class InvoiceController {
     }
 
     @PutMapping("/invoices/schedule/{id}")
-    synchronized ScheduleInvoiceResponse scheduleInvoiceById(@PathVariable String id, @Valid @RequestBody ScheduleInvoiceRequest scheduleInvoiceRequest) {
+    ScheduleInvoiceResponse scheduleInvoiceById(@PathVariable String id, @Valid @RequestBody ScheduleInvoiceRequest scheduleInvoiceRequest) {
         Invoice invoice = repository.findById(id)
                 .filter(i -> i.getScheduleStatus().equals(ScheduleStatus.WAITINGFORSCHEDULE))
                 .orElseThrow(() -> new InvoiceNotFoundException(Long.parseLong(id)));
